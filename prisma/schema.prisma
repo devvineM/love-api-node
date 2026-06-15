@@ -1,0 +1,148 @@
+generator client {
+  provider   = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+model User {
+  id            Int            @id @default(autoincrement())
+  fullName      String         @map("full_name")
+  username      String         @unique @map("user")
+  passwordHash  String         @map("password")
+  avatar        String?
+  bio           String?        @db.VarChar(250)
+  theme         String         @default("light") @db.VarChar(16)
+  active        Boolean        @default(true)
+  jobTitleId    Int?           @map("job_title_id")
+  levelId       Int            @map("level_id")
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updatedAt     DateTime       @updatedAt @map("updated_at")
+  jobTitle      JobTitle?      @relation(fields: [jobTitleId], references: [id])
+  level         Level          @relation(fields: [levelId], references: [id])
+  refreshTokens RefreshToken[]
+  spaces        Space[]
+  assignedTasks Task[]         @relation("TaskAssignee")
+  taskMembers   TaskMember[]
+  issuedAccountCodes AccountAuthorizationCode[] @relation("AccountCodeIssuer")
+
+  @@map("users")
+}
+
+model AccountAuthorizationCode {
+  id         String    @id @default(uuid())
+  code       String    @unique @db.VarChar(4)
+  jobTitleId Int       @map("job_title_id")
+  createdById Int      @map("created_by_id")
+  expiresAt  DateTime  @map("expires_at")
+  usedAt     DateTime? @map("used_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+  jobTitle   JobTitle  @relation(fields: [jobTitleId], references: [id])
+  createdBy  User      @relation("AccountCodeIssuer", fields: [createdById], references: [id])
+
+  @@index([expiresAt])
+  @@index([createdById])
+  @@index([jobTitleId])
+  @@map("account_authorization_codes")
+}
+
+model Level {
+  id          Int      @id @default(autoincrement())
+  level       String   @unique
+  description String   @unique
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  users       User[]
+
+  @@map("levels")
+}
+
+model JobTitle {
+  id        Int      @id @default(autoincrement())
+  jobTitle  String   @unique @map("job_title")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  users     User[]
+  accountAuthorizationCodes AccountAuthorizationCode[]
+
+  @@map("job_titles")
+}
+
+model Space {
+  id         Int      @id @default(autoincrement())
+  spaceTitle String   @unique @map("space_title")
+  color      String
+  active     Boolean  @default(true)
+  userId     Int      @map("user_id")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+  user       User     @relation(fields: [userId], references: [id])
+  tasks      Task[]
+
+  @@index([userId])
+  @@map("spaces")
+}
+
+model Task {
+  id          Int      @id @default(autoincrement())
+  assigneeId  Int      @map("assignee_id")
+  spaceId     Int      @map("space_id")
+  type        String
+  taskTitle   String   @map("task_title")
+  description String   @db.Text
+  status      String
+  active      Boolean  @default(true)
+  isReviewed  Boolean  @default(false) @map("is_reviewed")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  assignee    User     @relation("TaskAssignee", fields: [assigneeId], references: [id])
+  space       Space    @relation(fields: [spaceId], references: [id])
+  taskMembers TaskMember[]
+  taskImages  TaskImage[]
+
+  @@index([assigneeId])
+  @@index([spaceId])
+  @@map("tasks")
+}
+
+model TaskImage {
+  id        Int      @id @default(autoincrement())
+  taskId    Int      @map("task_id")
+  fileName  String   @map("file_name")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@index([taskId])
+  @@map("task_images")
+}
+
+model TaskMember {
+  id        Int      @id @default(autoincrement())
+  taskId    Int      @map("task_id")
+  userId    Int      @map("user_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([taskId, userId])
+  @@index([taskId])
+  @@index([userId])
+  @@map("task_members")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  tokenHash String   @unique @map("token_hash")
+  userId    Int      @map("user_id")
+  expiresAt DateTime @map("expires_at")
+  revokedAt DateTime? @map("revoked_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}

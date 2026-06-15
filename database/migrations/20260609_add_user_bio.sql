@@ -1,0 +1,2 @@
+ALTER TABLE `users`
+  ADD COLUMN `bio` VARCHAR(250) NULL AFTER `avatar`;
