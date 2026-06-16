@@ -20,9 +20,13 @@ import { AuthRepository } from "./auth.repository.ts";
 export class AuthService {
   constructor(private readonly authRepository: AuthRepository) {}
 
+  isRegistrationCodeRequired() {
+    return env.userCode;
+  }
+
   getPublicSettings(): AuthSettingsModel {
     return {
-      user_code_required: true,
+      user_code_required: this.isRegistrationCodeRequired()
     };
   }
 
@@ -37,9 +41,9 @@ export class AuthService {
   }
 
   async register(input: RegisterUserInputModel): Promise<AuthUserModel> {
-    const authorizationCode = await this.consumeRegistrationCode(
-      input.registrationCode
-    );
+    const authorizationCode = this.isRegistrationCodeRequired()
+      ? await this.consumeRegistrationCode(input.registrationCode)
+      : null;
     const defaultLevel = await this.authRepository.ensureDefaultLevel();
 
     const existingUser = await this.authRepository.findUserByUsername(
@@ -57,7 +61,7 @@ export class AuthService {
       username: input.username.trim(),
       passwordHash,
       levelId: defaultLevel.id,
-      jobTitleId: authorizationCode.jobTitleId,
+      jobTitleId: authorizationCode?.jobTitleId || null,
       active: true
     });
 

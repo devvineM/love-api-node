@@ -5,47 +5,52 @@ const usernameRegex = /^(?!.*@)[a-zA-Z0-9._-]+$/;
 const passwordRegex =
   /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
 
-export const registerUserSchema = yup
-  .object({
-    registrationCode: yup
-      .string()
-      .trim()
-      .matches(/^\d{4}$/, "Informe um codigo de cadastro valido com 4 digitos.")
-      .required("Código de cadastro é obrigatório."),
-    fullName: yup
-      .string()
-      .required("Nome completo é obrigatório.")
-      .matches(
-        fullNameRegex,
-        "Informe um nome completo valido, contendo apenas letras e espacos."
-      ),
-    username: yup
-      .string()
-      .required("Usuário é obrigatório.")
-      .matches(
-        usernameRegex,
-        "Usuário inválido. Use apenas letras, números, ponto, traço ou sublinhado."
-      ),
-    password: yup
-      .string()
-      .required("Senha é obrigatória.")
-      .matches(
-        passwordRegex,
-        "A senha precisa ter no minimo 8 caracteres, com letra maiuscula, minuscula, numero e simbolo."
-      )
-  })
-  .noUnknown();
+const registrationCodeSchema = yup
+  .string()
+  .trim()
+  .matches(/^\d{4}$/, "Informe um codigo de cadastro valido com 4 digitos.");
+
+export function getRegisterUserSchema(requireRegistrationCode: boolean) {
+  return yup
+    .object({
+      registrationCode: requireRegistrationCode
+        ? registrationCodeSchema.required("Codigo de cadastro e obrigatorio.")
+        : registrationCodeSchema.notRequired(),
+      fullName: yup
+        .string()
+        .required("Nome completo e obrigatorio.")
+        .matches(
+          fullNameRegex,
+          "Informe um nome completo valido, contendo apenas letras e espacos."
+        ),
+      username: yup
+        .string()
+        .required("Usuario e obrigatorio.")
+        .matches(
+          usernameRegex,
+          "Usuario invalido. Use apenas letras, numeros, ponto, traco ou sublinhado."
+        ),
+      password: yup
+        .string()
+        .required("Senha e obrigatoria.")
+        .matches(
+          passwordRegex,
+          "A senha precisa ter no minimo 8 caracteres, com letra maiuscula, minuscula, numero e simbolo."
+        )
+    })
+    .noUnknown();
+}
 
 export const loginSchema = yup
   .object({
-    username: yup.string().required("Usuário é obrigatório."),
-    password: yup.string().required("Senha é obrigatória.")
+    username: yup.string().required("Usuario e obrigatorio."),
+    password: yup.string().required("Senha e obrigatoria.")
   })
   .noUnknown();
 
 export const refreshSessionSchema = yup
   .object({
-    refreshToken: yup.string().required("Refresh token é obrigatório.")
+    refreshToken: yup.string().required("Refresh token e obrigatorio.")
   })
   .noUnknown();
 

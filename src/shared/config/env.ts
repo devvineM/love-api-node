@@ -1,6 +1,11 @@
 const defaultJwtExpiresIn = "15m";
 const defaultRefreshTokenExpiresInDays = 7;
 const defaultFrontendUrl = "http://localhost:3001";
+const defaultUserCode = "false";
+
+function parseBooleanEnv(value: string) {
+  return value.trim().toLowerCase() === "true";
+}
 
 export const env = {
   port: Number(process.env.PORT) || 3000,
@@ -9,7 +14,7 @@ export const env = {
   refreshTokenExpiresInDays:
     Number(process.env.REFRESH_TOKEN_EXPIRES_IN_DAYS) ||
     defaultRefreshTokenExpiresInDays,
-  userCode: process.env.USER_CODE || "false",
+  userCode: parseBooleanEnv(process.env.USER_CODE || defaultUserCode),
   frontendUrl: process.env.FRONTEND_URL || defaultFrontendUrl
 };
 

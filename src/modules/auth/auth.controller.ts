@@ -9,9 +9,9 @@ import type {
 } from "./auth.model.ts";
 import {
   generateAccountCodeSchema,
+  getRegisterUserSchema,
   loginSchema,
-  refreshSessionSchema,
-  registerUserSchema
+  refreshSessionSchema
 } from "./auth.schema.ts";
 import { AuthService } from "./auth.service.ts";
 
@@ -31,7 +31,7 @@ export class AuthController {
 
   register = async (request: Request, response: Response) => {
     const payload = await validateSchema<RegisterUserInputModel>(
-      registerUserSchema,
+      getRegisterUserSchema(this.authService.isRegistrationCodeRequired()),
       request.body
     );
     const user = await this.authService.register(payload);
