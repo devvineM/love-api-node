@@ -1,6 +1,7 @@
 import * as yup from "yup";
 
-const fullNameRegex = /^[A-Za-zÀ-ÖØ-öø-ÿ]+(?:\s+[A-Za-zÀ-ÖØ-öø-ÿ]+)+$/;
+const fullNameRegex =
+  /^(?=.{3,}$)[\p{L}\p{M}]+(?:[ '-][\p{L}\p{M}]+)+$/u;
 const usernameRegex = /^(?!.*@)[a-zA-Z0-9._-]+$/;
 const passwordRegex =
   /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
@@ -8,34 +9,34 @@ const passwordRegex =
 const registrationCodeSchema = yup
   .string()
   .trim()
-  .matches(/^\d{4}$/, "Informe um codigo de cadastro valido com 4 digitos.");
+  .matches(/^\d{4}$/, "Informe um código de cadastro válido com 4 dígitos.");
 
 export function getRegisterUserSchema(requireRegistrationCode: boolean) {
   return yup
     .object({
       registrationCode: requireRegistrationCode
-        ? registrationCodeSchema.required("Codigo de cadastro e obrigatorio.")
+        ? registrationCodeSchema.required("Código de cadastro é obrigatório.")
         : registrationCodeSchema.notRequired(),
       fullName: yup
         .string()
-        .required("Nome completo e obrigatorio.")
+        .required("Nome completo é obrigatório.")
         .matches(
           fullNameRegex,
-          "Informe um nome completo valido, contendo apenas letras e espacos."
+          "Informe um nome completo válido, usando apenas letras, espaços, apóstrofo ou hífen."
         ),
       username: yup
         .string()
-        .required("Usuario e obrigatorio.")
+        .required("Usuário é obrigatório.")
         .matches(
           usernameRegex,
-          "Usuario invalido. Use apenas letras, numeros, ponto, traco ou sublinhado."
+          "Usuário inválido. Use apenas letras, números, ponto, traço ou sublinhado."
         ),
       password: yup
         .string()
-        .required("Senha e obrigatoria.")
+        .required("Senha é obrigatória.")
         .matches(
           passwordRegex,
-          "A senha precisa ter no minimo 8 caracteres, com letra maiuscula, minuscula, numero e simbolo."
+          "A senha precisa ter no mínimo 8 caracteres, com letra maiúscula, minúscula, número e símbolo."
         )
     })
     .noUnknown();
@@ -43,14 +44,14 @@ export function getRegisterUserSchema(requireRegistrationCode: boolean) {
 
 export const loginSchema = yup
   .object({
-    username: yup.string().required("Usuario e obrigatorio."),
-    password: yup.string().required("Senha e obrigatoria.")
+    username: yup.string().required("Usuário é obrigatório."),
+    password: yup.string().required("Senha é obrigatória.")
   })
   .noUnknown();
 
 export const refreshSessionSchema = yup
   .object({
-    refreshToken: yup.string().required("Refresh token e obrigatorio.")
+    refreshToken: yup.string().required("Refresh token é obrigatório.")
   })
   .noUnknown();
 

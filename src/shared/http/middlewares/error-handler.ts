@@ -12,7 +12,7 @@ export function errorHandler(
 ) {
   if (error instanceof ValidationError) {
     response.status(400).json({
-      message: "Dados invÃ¡lidos.",
+      message: "Dados inválidos.",
       errors: error.errors
     });
     return;

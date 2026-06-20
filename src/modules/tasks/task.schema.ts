@@ -8,7 +8,7 @@ function normalizeTaskStatusValue(value: unknown) {
   }
 
   if (value.toLowerCase().startsWith("come")) {
-    return "ComeÃ§ou";
+    return "Começou";
   }
 
   return value;
@@ -73,7 +73,7 @@ export const createTaskSchema = yup
       .transform(numberTransform)
       .integer()
       .min(1)
-      .required("ResponsÃ¡vel Ã© obrigatÃ³rio."),
+      .required("Responsável é obrigatório."),
     assigneeIds: yup
       .array(
         yup
@@ -83,27 +83,27 @@ export const createTaskSchema = yup
           .min(1)
           .required()
       )
-      .min(1, "Escolha pelo menos um responsÃ¡vel.")
-      .required("ResponsÃ¡veis sÃ£o obrigatÃ³rios."),
+      .min(1, "Escolha pelo menos um responsável.")
+      .required("Responsáveis são obrigatórios."),
     spaceId: yup
       .number()
       .transform(numberTransform)
       .integer()
       .min(1)
-      .required("EspaÃ§o Ã© obrigatÃ³rio."),
+      .required("Espaço é obrigatório."),
     type: yup.mixed<(typeof taskTypes)[number]>().oneOf([...taskTypes]).required(),
     taskTitle: yup
       .string()
       .trim()
-      .required("TÃ­tulo da tarefa Ã© obrigatÃ³rio.")
-      .min(3, "TÃ­tulo muito curto.")
-      .max(160, "TÃ­tulo muito longo."),
+      .required("Título da tarefa é obrigatório.")
+      .min(3, "Título muito curto.")
+      .max(160, "Título muito longo."),
     description: yup
       .string()
       .trim()
-      .required("DescriÃ§Ã£o Ã© obrigatÃ³ria.")
-      .min(5, "DescriÃ§Ã£o muito curta.")
-      .max(2000, "DescriÃ§Ã£o muito longa."),
+      .required("Descrição é obrigatória.")
+      .min(5, "Descrição muito curta.")
+      .max(2000, "Descrição muito longa."),
     status: yup
       .mixed<(typeof taskStatuses)[number]>()
       .transform(normalizeTaskStatusValue)
@@ -114,7 +114,7 @@ export const createTaskSchema = yup
   })
   .test(
     "assignees-by-type",
-    "Tasks do tipo squad precisam de pelo menos 2 responsaveis.",
+    "Tasks do tipo squad precisam de pelo menos 2 responsáveis.",
     (value) => {
       if (!value) {
         return true;
@@ -129,7 +129,7 @@ export const createTaskSchema = yup
   )
   .test(
     "primary-assignee-in-team",
-    "O responsavel principal precisa fazer parte da equipe selecionada.",
+    "O responsável principal precisa fazer parte da equipe selecionada.",
     (value) => {
       if (!value) {
         return true;

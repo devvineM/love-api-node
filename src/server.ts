@@ -30,7 +30,7 @@ async function startServer() {
       console.log(`API rodando em http://localhost:${port}`);
     });
   } catch (error) {
-    console.error("NÃ£o foi possÃ­vel conectar ao banco de dados.", error);
+    console.error("Não foi possível conectar ao banco de dados.", error);
     process.exit(1);
   }
 }

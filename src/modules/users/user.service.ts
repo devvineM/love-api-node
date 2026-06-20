@@ -1,8 +1,9 @@
 import { compare, hash } from "bcryptjs";
 import { mkdir, unlink } from "node:fs/promises";
 import path from "node:path";
-import sharp from "sharp";
 import { randomUUID } from "node:crypto";
+
+import sharp from "sharp";
 
 import { AppError } from "../../shared/errors/app-error.ts";
 import type {
@@ -20,6 +21,7 @@ import { UserRepository } from "./user.repository.ts";
 
 const avatarQuality = 70;
 const avatarUploadDirectory = path.resolve(process.cwd(), "uploads", "avatars");
+const taskUploadDirectory = path.resolve(process.cwd(), "uploads", "tasks");
 
 export class UserService {
   constructor(private readonly userRepository: UserRepository) {}
@@ -52,7 +54,7 @@ export class UserService {
           jobTitle: string;
         } | null;
       }) => {
-        const firstName = user.fullName.trim().split(/\s+/)[0] || "UsuÃ¡rio";
+        const firstName = user.fullName.trim().split(/\s+/)[0] || "Usuário";
 
         return {
           id: user.id,
@@ -104,7 +106,7 @@ export class UserService {
     const user = await this.userRepository.findProfileById(userId);
 
     if (!user) {
-      throw new AppError("UsuÃ¡rio nÃ£o encontrado.", 404);
+      throw new AppError("Usuário não encontrado.", 404);
     }
 
     return this.serializeProfile(user);
@@ -121,7 +123,7 @@ export class UserService {
     const user = await this.userRepository.findById(userId);
 
     if (!user) {
-      throw new AppError("UsuÃ¡rio nÃ£o encontrado.", 404);
+      throw new AppError("Usuário não encontrado.", 404);
     }
 
     await mkdir(avatarUploadDirectory, {
@@ -172,7 +174,7 @@ export class UserService {
     const user = await this.userRepository.findProfileById(userId);
 
     if (!user) {
-      throw new AppError("UsuÃ¡rio nÃ£o encontrado.", 404);
+      throw new AppError("Usuário não encontrado.", 404);
     }
 
     const updatedUser = await this.userRepository.updateMyProfile(userId, {
@@ -191,7 +193,7 @@ export class UserService {
     const user = await this.userRepository.findProfileById(userId);
 
     if (!user) {
-      throw new AppError("UsuÃ¡rio nÃ£o encontrado.", 404);
+      throw new AppError("Usuário não encontrado.", 404);
     }
 
     const passwordMatches = await compare(
@@ -221,14 +223,14 @@ export class UserService {
     const user = await this.userRepository.findById(userId);
 
     if (!user) {
-      throw new AppError("UsuÃ¡rio nÃ£o encontrado.", 404);
+      throw new AppError("Usuário não encontrado.", 404);
     }
 
     const updatedUser = await this.userRepository.updateAdminUser(userId, {
       jobTitleId: input.jobTitleId
     });
 
-    const firstName = updatedUser.fullName.trim().split(/\s+/)[0] || "UsuÃ¡rio";
+    const firstName = updatedUser.fullName.trim().split(/\s+/)[0] || "Usuário";
 
     return {
       id: updatedUser.id,
@@ -243,6 +245,51 @@ export class UserService {
       created_at: updatedUser.createdAt,
       updated_at: updatedUser.updatedAt
     };
+  }
+
+  async dismissByAdmin(
+    userId: number,
+    actor: { userId: number | null; level: string | null } | null
+  ) {
+    this.ensureAdmin(actor?.level);
+
+    if (!actor?.userId) {
+      throw new AppError("Usuário autenticado não identificado.", 401);
+    }
+
+    if (actor.userId === userId) {
+      throw new AppError("Você não pode demitir a própria conta.", 400);
+    }
+
+    const user = await this.userRepository.findById(userId);
+
+    if (!user) {
+      throw new AppError("Usuário não encontrado.", 404);
+    }
+
+    const result = await this.userRepository.dismissByAdmin(userId, actor.userId);
+
+    if (!result) {
+      throw new AppError("Usuário não encontrado.", 404);
+    }
+
+    if (result.avatarFileName) {
+      try {
+        await unlink(path.join(avatarUploadDirectory, result.avatarFileName));
+      } catch {
+        // Ignora ausencia do arquivo para nao impedir a demissao.
+      }
+    }
+
+    await Promise.all(
+      result.taskImageFileNames.map(async (fileName) => {
+        try {
+          await unlink(path.join(taskUploadDirectory, fileName));
+        } catch {
+          // Ignora ausencia do arquivo para nao impedir a demissao.
+        }
+      })
+    );
   }
 
   private resolveExtension(mimeType: string) {

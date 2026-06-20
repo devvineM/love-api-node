@@ -34,7 +34,7 @@ export class AuthService {
     const user = await this.authRepository.findUserById(userId);
 
     if (!user) {
-      throw new AppError("UsuÃ¡rio nÃ£o encontrado.", 404);
+      throw new AppError("Usuário não encontrado.", 404);
     }
 
     return this.serializeUser(user);
@@ -51,7 +51,7 @@ export class AuthService {
     );
 
     if (existingUser) {
-      throw new AppError("Nome de usuario ja utilizado.", 409);
+      throw new AppError("Nome de usuário já utilizado.", 409);
     }
 
     const passwordHash = await hash(input.password, 12);
@@ -72,7 +72,7 @@ export class AuthService {
     const user = await this.authRepository.findUserByUsername(input.username);
 
     if (!user) {
-      throw new AppError("UsuÃ¡rio ou senha invÃ¡lidos.", 401);
+      throw new AppError("Usuário ou senha inválidos.", 401);
     }
 
     if (!user.active) {
@@ -82,7 +82,7 @@ export class AuthService {
     const passwordMatches = await compare(input.password, user.passwordHash);
 
     if (!passwordMatches) {
-      throw new AppError("UsuÃ¡rio ou senha invÃ¡lidos.", 401);
+      throw new AppError("Usuário ou senha inválidos.", 401);
     }
 
     return this.issueSessionTokens({
@@ -101,7 +101,7 @@ export class AuthService {
     );
 
     if (!refreshTokenRecord) {
-      throw new AppError("Refresh token invÃ¡lido.", 401);
+      throw new AppError("Refresh token inválido.", 401);
     }
 
     if (refreshTokenRecord.revokedAt) {
@@ -134,7 +134,7 @@ export class AuthService {
     const jobTitle = await this.authRepository.findJobTitleById(input.jobTitleId);
 
     if (!jobTitle) {
-      throw new AppError("Cargo selecionado nÃ£o encontrado.", 404);
+      throw new AppError("Cargo selecionado não encontrado.", 404);
     }
 
     const code = await this.generateUniqueAccountCode();
@@ -174,9 +174,7 @@ export class AuthService {
     const rawRefreshToken = randomUUID();
     const refreshTokenHash = this.hashRefreshToken(rawRefreshToken);
     const expiresAt = new Date();
-    expiresAt.setDate(
-      expiresAt.getDate() + env.refreshTokenExpiresInDays
-    );
+    expiresAt.setDate(expiresAt.getDate() + env.refreshTokenExpiresInDays);
 
     await this.authRepository.createRefreshToken({
       tokenHash: refreshTokenHash,
@@ -198,18 +196,18 @@ export class AuthService {
     const normalizedCode = registrationCode?.trim();
 
     if (!normalizedCode) {
-      throw new AppError("CÃ³digo de cadastro obrigatÃ³rio.", 403);
+      throw new AppError("Código de cadastro obrigatório.", 403);
     }
 
     const authorizationCode =
       await this.authRepository.findAvailableAccountCode(normalizedCode);
 
     if (!authorizationCode || authorizationCode.usedAt) {
-      throw new AppError("CÃ³digo de cadastro invÃ¡lido.", 403);
+      throw new AppError("Código de cadastro inválido.", 403);
     }
 
     if (authorizationCode.expiresAt.getTime() <= Date.now()) {
-      throw new AppError("CÃ³digo de cadastro expirado.", 403);
+      throw new AppError("Código de cadastro expirado.", 403);
     }
 
     await this.authRepository.markAccountCodeAsUsed(authorizationCode.id);
@@ -230,7 +228,7 @@ export class AuthService {
     }
 
     throw new AppError(
-      "NÃ£o foi possÃ­vel gerar um novo cÃ³digo agora. Tente novamente.",
+      "Não foi possível gerar um novo código agora. Tente novamente.",
       503
     );
   }
@@ -247,11 +245,11 @@ export class AuthService {
 
   private ensureAdmin(actor: { userId: number | null; level: string | null } | null) {
     if (!actor?.userId) {
-      throw new AppError("UsuÃ¡rio autenticado nÃ£o identificado.", 401);
+      throw new AppError("Usuário autenticado não identificado.", 401);
     }
 
     if (actor.level?.toLowerCase() !== "admin") {
-      throw new AppError("Essa area e exclusiva para administradores.", 403);
+      throw new AppError("Essa área é exclusiva para administradores.", 403);
     }
   }
 

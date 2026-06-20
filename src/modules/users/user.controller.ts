@@ -42,7 +42,7 @@ export class UserController {
 
   me = async (request: Request, response: Response) => {
     if (!request.auth?.userId) {
-      throw new AppError("UsuÃ¡rio autenticado nÃ£o identificado.", 401);
+      throw new AppError("Usuário autenticado não identificado.", 401);
     }
 
     const result = await this.userService.getMyProfile(request.auth.userId);
@@ -52,7 +52,7 @@ export class UserController {
 
   updateMe = async (request: Request, response: Response) => {
     if (!request.auth?.userId) {
-      throw new AppError("UsuÃ¡rio autenticado nÃ£o identificado.", 401);
+      throw new AppError("Usuário autenticado não identificado.", 401);
     }
 
     const body = await validateSchema<UpdateMyProfileInputModel>(
@@ -69,7 +69,7 @@ export class UserController {
 
   updateMyPassword = async (request: Request, response: Response) => {
     if (!request.auth?.userId) {
-      throw new AppError("UsuÃ¡rio autenticado nÃ£o identificado.", 401);
+      throw new AppError("Usuário autenticado não identificado.", 401);
     }
 
     const body = await validateSchema<UpdateMyPasswordInputModel>(
@@ -98,9 +98,23 @@ export class UserController {
     response.status(200).json(result);
   };
 
+  dismissByAdmin = async (request: Request, response: Response) => {
+    const params = await validateSchema<{ id: number }>(
+      updateUserParamsSchema,
+      request.params
+    );
+
+    await this.userService.dismissByAdmin(params.id, {
+      userId: request.auth?.userId || null,
+      level: request.auth?.level || null
+    });
+
+    response.status(204).send();
+  };
+
   updateMyAvatar = async (request: Request, response: Response) => {
     if (!request.auth?.userId) {
-      throw new AppError("UsuÃ¡rio autenticado nÃ£o identificado.", 401);
+      throw new AppError("Usuário autenticado não identificado.", 401);
     }
 
     const result = await this.userService.updateAvatar(

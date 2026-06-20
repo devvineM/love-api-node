@@ -24,3 +24,4 @@ userRouter.patch(
   userController.updateMyAvatar
 );
 userRouter.patch("/:id", authenticate, userController.updateByAdmin);
+userRouter.delete("/:id", authenticate, userController.dismissByAdmin);

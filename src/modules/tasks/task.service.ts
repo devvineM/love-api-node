@@ -26,7 +26,7 @@ const maxTaskImages = 10;
 
 function normalizeTaskStatusValue(status: string) {
   if (status.toLowerCase().startsWith("come")) {
-    return "ComeÃ§ou";
+    return "Começou";
   }
 
   return status;
@@ -167,7 +167,7 @@ export class TaskService {
 
     if (actorLevel === "user" && !isUserManagedStatus(normalizedTask.status)) {
       throw new AppError(
-        "O colaborador responsavel pela tarefa so pode alterar entre Parada, ComeÃ§ou, Fazendo, Terminando e Pronta.",
+        "O colaborador responsavel pela tarefa so pode alterar entre Parada, Começou, Fazendo, Terminando e Pronta.",
         403
       );
     }
@@ -307,7 +307,7 @@ export class TaskService {
         fullName: string;
         avatar: string | null;
       }) => {
-        const firstName = user.fullName.trim().split(/\s+/)[0] || "UsuÃ¡rio";
+        const firstName = user.fullName.trim().split(/\s+/)[0] || "Usuário";
 
         return {
           id: user.id,
@@ -384,11 +384,11 @@ export class TaskService {
     ]);
 
     if (assignees.some((assignee: { id: number } | null) => !assignee)) {
-      throw new AppError("ResponsÃ¡vel nÃ£o encontrado.", 404);
+      throw new AppError("Responsável não encontrado.", 404);
     }
 
     if (!space) {
-      throw new AppError("EspaÃ§o nÃ£o encontrado.", 404);
+      throw new AppError("Espaço não encontrado.", 404);
     }
 
     if (!space.active) {
@@ -435,7 +435,7 @@ export class TaskService {
       fullName: string;
       avatar: string | null;
     }) => {
-      const firstName = assignee.fullName.trim().split(/\s+/)[0] || "UsuÃ¡rio";
+      const firstName = assignee.fullName.trim().split(/\s+/)[0] || "Usuário";
 
       return {
         id: assignee.id,

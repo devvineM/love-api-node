@@ -273,4 +273,157 @@ export class UserRepository {
       }
     });
   }
+
+  async dismissByAdmin(userId: number, actorUserId: number) {
+    return prisma.$transaction(async (tx) => {
+      const user = await tx.user.findUnique({
+        where: {
+          id: userId
+        },
+        select: {
+          id: true,
+          avatar: true
+        }
+      });
+
+      if (!user) {
+        return null;
+      }
+
+      const [soloTasks, squadTasks] = await Promise.all([
+        tx.task.findMany({
+          where: {
+            assigneeId: userId,
+            type: "solo"
+          },
+          select: {
+            id: true,
+            taskImages: {
+              select: {
+                fileName: true
+              }
+            }
+          }
+        }),
+        tx.task.findMany({
+          where: {
+            type: "squad",
+            taskMembers: {
+              some: {
+                userId
+              }
+            }
+          },
+          select: {
+            id: true,
+            assigneeId: true,
+            taskImages: {
+              select: {
+                fileName: true
+              }
+            },
+            taskMembers: {
+              select: {
+                userId: true
+              }
+            }
+          }
+        })
+      ]);
+
+      const taskImageFileNames = soloTasks.flatMap((task) =>
+        task.taskImages.map((image) => image.fileName)
+      );
+      const taskIdsToDelete = new Set(soloTasks.map((task) => task.id));
+
+      for (const task of squadTasks) {
+        const remainingMemberIds = task.taskMembers
+          .map((member) => member.userId)
+          .filter((memberId) => memberId !== userId);
+
+        if (remainingMemberIds.length === 0) {
+          taskIdsToDelete.add(task.id);
+          taskImageFileNames.push(
+            ...task.taskImages.map((image) => image.fileName)
+          );
+          continue;
+        }
+
+        if (remainingMemberIds.length === 1) {
+          await tx.task.update({
+            where: {
+              id: task.id
+            },
+            data: {
+              type: "solo",
+              assigneeId: remainingMemberIds[0],
+              taskMembers: {
+                deleteMany: {
+                  userId
+                }
+              }
+            }
+          });
+          continue;
+        }
+
+        await tx.task.update({
+          where: {
+            id: task.id
+          },
+          data: {
+            assigneeId:
+              task.assigneeId === userId ? remainingMemberIds[0] : task.assigneeId,
+            taskMembers: {
+              deleteMany: {
+                userId
+              }
+            }
+          }
+        });
+      }
+
+      if (taskIdsToDelete.size > 0) {
+        await tx.task.deleteMany({
+          where: {
+            id: {
+              in: [...taskIdsToDelete]
+            }
+          }
+        });
+      }
+
+      await tx.space.updateMany({
+        where: {
+          userId
+        },
+        data: {
+          userId: actorUserId
+        }
+      });
+
+      await tx.accountAuthorizationCode.deleteMany({
+        where: {
+          createdById: userId
+        }
+      });
+
+      await tx.refreshToken.deleteMany({
+        where: {
+          userId
+        }
+      });
+
+      await tx.user.delete({
+        where: {
+          id: userId
+        }
+      });
+
+      return {
+        avatarFileName: user.avatar,
+        taskImageFileNames
+      };
+    });
+  }
 }
