@@ -138,7 +138,9 @@ export class AuthService {
     }
 
     const code = await this.generateUniqueAccountCode();
-    const expiresAt = new Date(Date.now() + 2 * 60 * 1000);
+    const expiresAt = new Date(
+      Date.now() + env.accountCodeExpiresInMinutes * 60 * 1000
+    );
 
     const authorizationCode =
       await this.authRepository.createAccountAuthorizationCode({
@@ -151,6 +153,7 @@ export class AuthService {
     return {
       code: authorizationCode.code,
       expires_at: authorizationCode.expiresAt,
+      expires_in_minutes: env.accountCodeExpiresInMinutes,
       job_title: authorizationCode.jobTitle.jobTitle
     };
   }

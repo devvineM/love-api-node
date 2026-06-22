@@ -30,6 +30,7 @@ export interface GenerateAccountCodeInputModel {
 export interface GenerateAccountCodeResponseModel {
   code: string;
   expires_at: Date;
+  expires_in_minutes: number;
   job_title: string;
 }
 
